@@ -9,17 +9,22 @@ schemes = {'Lax-Friedrichs', 'First-Order Upwind', 'Lax-Wendroff', 'Minimum Disp
 x = linspace(0, L, M+1);
 u_exact = sin(2*pi*(x-a*T)); 
 
+L1_errors = zeros(length(schemes), length(nu_values)); 
+
 for i = 1:length(schemes)
     scheme = schemes{i}; 
     figure;
     hold on; 
 
-    plot(x, u_exact, 'DisplayName', 'Exact Solution'); 
+    plot(x, u_exact, 'LineWidth', 2, 'DisplayName', 'Exact Solution'); 
 
     for j = 1:length(nu_values)
         nu = nu_values(j);
         u_final = solve_advection(a, M, x, T, L, scheme, nu); 
-        plot(x,u_final, 'DisplayName', sprintf('|\\nu| = %.4f', nu)); 
+        P = M + 1; 
+        L1_error_norm = (1/P)* sum(abs(u_final - u_exact)); 
+        L1_error_matrix
+        plot(x,u_final, 'LineWidth', 2, 'DisplayName', sprintf('|\\nu| = %.4f', nu)); 
     end 
     xlabel('x'); 
     ylabel('u(x,T)'); 
@@ -59,6 +64,10 @@ function u_final = solve_advection(a, M, x, T, L, scheme, nu)
         u(M+1, n+1) = u(1, n+1); 
     end 
     u_final = u(:, nt+1); 
+    L1_error_norm = (1/M)*sum(abs(u_final - u_exact)); 
+
+    L1_errors(k) = L1_error_norm; 
+    dx_values(k) = dx; 
 end 
 
 

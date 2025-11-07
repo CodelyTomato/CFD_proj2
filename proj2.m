@@ -1,3 +1,4 @@
+clear; clc; 
 M = 32; 
 L = 1; 
 a = 1; 
@@ -7,7 +8,9 @@ nu_values = [1, 0.75, 0.5, 0.25];
 schemes = {'Lax-Friedrichs', 'First-Order Upwind', 'Lax-Wendroff', 'Minimum Dispersion'}; 
 
 x = linspace(0, L, M+1);
-u_exact = sin(2*pi*(x-a*T)); 
+u_exact = sin(2*pi*(x-a*T))'; 
+
+L1_errors = zeros(length(schemes), length(nu_values)); 
 
 for i = 1:length(schemes)
     scheme = schemes{i}; 
@@ -19,7 +22,11 @@ for i = 1:length(schemes)
     for j = 1:length(nu_values)
         nu = nu_values(j);
         u_final = solve_advection(a, M, x, T, L, scheme, nu); 
+        P = M + 1; 
+        L1_error_norm = (1/P)* sum(abs(u_final - u_exact)); 
+        L1_errors(i,j) = L1_error_norm; 
         plot(x,u_final, 'LineWidth', 2, 'DisplayName', sprintf('|\\nu| = %.4f', nu)); 
+        
     end 
     xlabel('x'); 
     ylabel('u(x,T)'); 
@@ -27,11 +34,26 @@ for i = 1:length(schemes)
     grid on; 
 end 
 
+nu_string_labels = arrayfun(@(n) sprintf('nu_%.2f', n), nu_values, 'UniformOutput', false);
+error_table = array2table(L1_errors, 'RowNames', schemes, 'VariableNames', nu_string_labels); 
+fprintf('\n### L1 Error Norms ###\n');
+disp(error_table); 
+
+figure; 
+hold on; 
+for i = 1:length(schemes)
+    plot(nu_values, L1_errors(i,:), '-o', 'LineWidth', 2, 'DisplayName', schemes{i}); 
+end 
+xlabel('\nu'); 
+ylabel('L1 Error Norm'); 
+legend show; 
+grid on; 
+
 function u_final = solve_advection(a, M, x, T, L, scheme, nu)
 
     dx = L/M; 
-    dt = (nu*dx)/a; 
-    nt = T/dt; 
+    nt = round(3 / (2*nu*dx)); 
+    dt = T / nt;  
     
     u = zeros(M+1, nt+1); 
     u(:,1) = sin(2*pi*x)'; 
@@ -85,6 +107,8 @@ function F = calc_flux(u_L, u_R, a, dx, dt, q)
 
     F = 0.5*(f_L + f_R) - (q*dx)/(2*dt)*(u_R - u_L); 
 end 
+
+
 
 
         
