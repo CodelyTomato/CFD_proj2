@@ -1,4 +1,5 @@
 clear; clc; 
+
 M = 32; 
 L = 1; 
 a = 1; 
@@ -98,7 +99,6 @@ function q = get_q(scheme, nu)
             error('invalid scheme'); 
     end 
 end 
-
 
 function F = calc_flux(u_L, u_R, a, dx, dt, q)
 
